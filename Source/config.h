@@ -7,8 +7,8 @@
 #define MEANS float
 #define DATA float
 #define DIS float
-#define DIM 3
 
+const uint32_t  DIM     = 3;
 const uint8_t   ADDR_W  = 40;
 const uint8_t   BTT_W   = 23;
 const uint8_t   CMD_W   = ADDR_W + BTT_W + 17;

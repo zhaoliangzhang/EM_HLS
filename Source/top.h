@@ -5,8 +5,8 @@
 #include "kmeans.h"
 #include "ap_axi_sdata.h"
 #include "datamover_cmd.h"
+#include "hls_stream.h"
 
-namespace efc {
     /**
     * @brief Top wrapper of kmeans module
     * @param[in]    mm2s              input 32-bit MM2S stream
@@ -19,7 +19,7 @@ namespace efc {
     */
     void top(hls::stream<ap_uint<32> > &mm2s,
     hls::stream<ap_uint<CMD_W>> &mm2s_cmd,
-    hls::stream<ap_uint<32> > &mm2s_means,
+    hls::stream<MEANS> &mm2s_means,
     hls::stream<ap_uint<CMD_W> > &mm2s_means_cmd,
     ap_uint<ADDR_W> addr_in,
     ap_uint<ADDR_W> addr_means_in,
@@ -27,8 +27,7 @@ namespace efc {
     uint32_t cnt_in,
     uint32_t &cnt_out
     );
-    
-}
+
 
 
 #endif

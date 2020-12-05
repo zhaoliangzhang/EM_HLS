@@ -1,24 +1,20 @@
 #include "kmeans.h"
 #include "hls_math.h"
 
-DIS CalcDistance(const DATA* x, const MEANS* u) {
-	DIS temp = 0;
-	distance:for (uint32_t d = 0; d < DIM; d++) {
-		temp += (x[d] - u[d]) * (x[d] - u[d]);
-	}
-	return sqrt(temp);
-}
 
-void CalDis(DATA* sample, hls::stream<DIS> dis, MEANS** k_means){
+void CalDis(DATA* sample, hls::stream<DIS> &dis, MEANS k_means[MAX_MODEL_NUM][DIM]){
     
     CalDIS:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-        DIS tmp_dis;
-        tmp_dis = CalcDistance(sample, k_means[i]);
+        DIS tmp_dis=0;
+        distance:for (uint32_t d = 0; d < DIM; d++) {
+            tmp_dis += (sample[d]-k_means[i][d]) * (sample[d]-k_means[i][d]);
+        }
+        tmp_dis = sqrt(tmp_dis);
         dis.write(tmp_dis);
     }
 }
 
-void GetLabel(hls::stream<DIS> dis, hls::stream<uint32_t> label){
+void GetLabel(hls::stream<DIS> &dis, hls::stream<uint32_t> &label){
     DIS max = 0;
     uint32_t p = 0;
     Label:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
@@ -29,14 +25,30 @@ void GetLabel(hls::stream<DIS> dis, hls::stream<uint32_t> label){
             p = i;
         }
     }
-    label.write(p);
+    LabelStream:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        if(i == p){
+            label.write(1);
+        } else {
+            label.write(0);
+        }
+    }
 }
 
-void Update(hls::stream<uint32_t> label, MEANS** next_means, ap_uint<8>* count, DATA* sample){
-    update:for(uint32_t i=0; i<DIM; i++) {
-        next_means[label][i] += sample[i];
+void Update(hls::stream<uint32_t> &label, MEANS next_means[MAX_MODEL_NUM][DIM], ap_uint<8> count[MAX_MODEL_NUM], DATA sample[DIM]){
+    float lab[MAX_MODEL_NUM];
+    onehot:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        uint32_t tmp;
+        label.read(tmp);
+        lab[i] = *(float *)(&tmp);
     }
-    count[label]++;
+    update:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        updateinner:for(uint32_t j=0; j<DIM; j++) {
+            next_means[i][j] += sample[j]*lab[i];
+        }
+        if(lab[i]){
+            count[i]++;
+        }
+    }
 }
 
 
@@ -65,12 +77,12 @@ uint32_t cnt_in) {
 
     for(uint32_t i=0; i<cnt_in; i++) {
         DATA sample[3];
-        readdata:for(uint32_t i=0; i<3; i++) {
-            unsigned int tmp;
+        readdata:for(uint32_t j=0; j<3; j++) {
+            ap_uint<32> tmp;
             mm2s.read(tmp);
-            sample[i] = *(float *)(&tmp);
+            sample[j] = *(float *)(&tmp);
         }
-        CalDis(sample, dis, k_means, local_dis);
+        CalDis(sample, dis, k_means);
         GetLabel(dis, label);
         Update(label, next_means, count, sample);
     }

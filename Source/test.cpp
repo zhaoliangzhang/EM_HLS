@@ -1,6 +1,8 @@
 #include "test.h"
+#include <string>
 
-DATA string_to_num(string str) {
+
+DATA string_to_num(std::string str) {
 	int i=0,len=str.length();
     DATA sum=0;
 	if(str[0] == '-'){
@@ -25,8 +27,11 @@ DATA string_to_num(string str) {
     return sum;
 }
 
-void FileToData(fstream fp, std::vetor<DATA> &data) {
-    string tmp;
+void FileToData(std::vector<DATA> &data) {
+    std::fstream fp;
+	fp.open("/home/zzl/Kmeans_HLS/PointCloud6.csv");
+
+    std::string tmp;
     uint32_t split_index[6];
     fp>>tmp;
     uint32_t index = 0;
@@ -40,15 +45,16 @@ void FileToData(fstream fp, std::vetor<DATA> &data) {
                     k +=1;
                 }
             }
-            data.pushback(string_to_num(tmp.substr(split_index[0]+1,(split_index[1]-split_index[0]-1))));
-            data.pushback(string_to_num(tmp.substr(split_index[1]+1,(split_index[2]-split_index[1]-1))));
-			data.pushback(string_to_num(tmp.substr(split_index[2]+1,(split_index[3]-split_index[2]-1))));
+            data.push_back(string_to_num(tmp.substr(split_index[0]+1,(split_index[1]-split_index[0]-1))));
+            data.push_back(string_to_num(tmp.substr(split_index[1]+1,(split_index[2]-split_index[1]-1))));
+			data.push_back(string_to_num(tmp.substr(split_index[2]+1,(split_index[3]-split_index[2]-1))));
             index += 1;
         }
     }
+    fp.close();
 }
 
-void DataToStream(std::vector<DATA> &data, hls::stream<ap_uint<32> > data_str) {
+void DataToStream(std::vector<DATA> &data, hls::stream<ap_uint<32> > &data_str) {
     for(auto d:data) {
         ap_uint<32> tmp;
         tmp = *(uint32_t *)(&d);
@@ -56,13 +62,11 @@ void DataToStream(std::vector<DATA> &data, hls::stream<ap_uint<32> > data_str) {
     }
 }
 
-void DataToMstream(std::vector<DATA> &data, hls::stream<ap_uint<32> > means_str) {
+void DataToMstream(std::vector<DATA> &data, hls::stream<MEANS> &means_str) {
     for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         uint32_t select = i*DATA_NUM / MAX_MODEL_NUM;
         for(uint32_t j=0; j<3; j++){
-            ap_uint<32> tmp;
-            tmp = *(uint32_t *)(&(data[select*3+j]));
-            means_str.write(tmp);
+            means_str.write(data[select*3+j]);
         }
     }
 }

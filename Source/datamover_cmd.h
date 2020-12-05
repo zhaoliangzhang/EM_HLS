@@ -1,7 +1,6 @@
 #include <ap_int.h>
 #include <stdint.h>
 
-namespace novauto {
 
     /**
      * @brief Datamover command structure
@@ -36,4 +35,3 @@ namespace novauto {
             return (ap_uint<4>(0), _tag, _saddr, _err, _eof, _dsa, _type, _btt);
         }
     };
-}
