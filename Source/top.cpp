@@ -2,7 +2,7 @@
 
 
     void top(hls::stream<ap_uint <32> > &mm2s,
-    hls::stream<ap_uint<CMD_W>> &mm2s_cmd,
+    hls::stream<ap_uint<CMD_W> > &mm2s_cmd,
     hls::stream<MEANS> &mm2s_means,
     hls::stream<ap_uint<CMD_W> > &mm2s_means_cmd,
     ap_uint<ADDR_W> addr_in,
@@ -15,7 +15,7 @@
         #pragma HLS INTERFACE s_axilite register port=addr_in bundle=ctrl
         #pragma HLS INTERFACE s_axilite register port=cnt_in bundle=ctrl
 
-        #pragma HLS INTERFACE bram port=ram depth=32768 storage_type=ram_1p
+        #pragma HLS INTERFACE bram port=pram depth=32768
         #pragma HLS INTERFACE ap_none port=cnt_out
         #pragma HLS INTERFACE axis register both port=mm2s
         #pragma HLS INTERFACE axis register both port=mm2s_cmd

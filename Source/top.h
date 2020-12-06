@@ -17,8 +17,7 @@
     * @param[in]    cnt_in            number of input points
     * @param[out]   cnt_out           number of output means
     */
-    void top(hls::stream<ap_uint<32> > &mm2s,
-    hls::stream<ap_uint<CMD_W>> &mm2s_cmd,
+    void top(hls::stream<ap_uint<32> > &mm2s, hls::stream<ap_uint<CMD_W> > &mm2s_cmd,
     hls::stream<MEANS> &mm2s_means,
     hls::stream<ap_uint<CMD_W> > &mm2s_means_cmd,
     ap_uint<ADDR_W> addr_in,
