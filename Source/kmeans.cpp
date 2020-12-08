@@ -2,10 +2,10 @@
 #include "hls_math.h"
 
 
-void CalDis(DATA* sample, hls::stream<DIS> &dis, MEANS k_means[MAX_MODEL_NUM][DIM]){
-    
+//void CalDis(DATA* sample, hls::stream<DIS> &dis, MEANS k_means[MAX_MODEL_NUM][DIM]){
+void CalDis(DATA sample[3], DIS local_dis[MAX_MODEL_NUM], MEANS k_means[MAX_MODEL_NUM][DIM]){
     CalDIS:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-        #pragma HLS PIPELINE II=1
+        #pragma HLS PIPELINE II=2
         #pragma HLS UNROLL factor=MAX_MODEL_NUM
         DIS tmp_dis=0;
         distance:for (uint32_t d = 0; d < DIM; d++) {
@@ -14,26 +14,27 @@ void CalDis(DATA* sample, hls::stream<DIS> &dis, MEANS k_means[MAX_MODEL_NUM][DI
             tmp_dis += (sample[d]-k_means[i][d]) * (sample[d]-k_means[i][d]);
         }
         tmp_dis = sqrt(tmp_dis);
-        dis.write(tmp_dis);
+        local_dis[i] = tmp_dis;
     }
 }
 
-void GetLabel(hls::stream<DIS> &dis, hls::stream<uint32_t> &label){
+//void GetLabel(hls::stream<DIS> &dis, hls::stream<uint32_t> &label){
+void GetLabel(DIS local_dis[MAX_MODEL_NUM], hls::stream<uint32_t> &label){
     DIS max = 0;
     uint32_t p = 0;
     Label:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         #pragma HLS PIPELINE II=1
-        #pragma HLS UNROLL factor=MAX_MODEL_NUM
-        DIS tmp;
-        dis.read(tmp);
-        if(tmp>max){
-            max = tmp;
+        //#pragma HLS UNROLL factor=MAX_MODEL_NUM
+        //DIS tmp;
+        //dis.read(tmp);
+        if(local_dis[i]>max){
+            max = local_dis[i];
             p = i;
         }
     }
     LabelStream:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         #pragma HLS PIPELINE II=1
-        #pragma HLS UNROLL factor=MAX_MODEL_NUM
+        //#pragma HLS UNROLL factor=MAX_MODEL_NUM
         if(i == p){
             label.write(1);
         } else {
@@ -47,14 +48,14 @@ void Update(hls::stream<uint32_t> &label, MEANS next_means[MAX_MODEL_NUM][DIM], 
     float lab[MAX_MODEL_NUM];
     onehot:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         #pragma HLS PIPELINE II=1
-        #pragma HLS UNROLL factor=MAX_MODEL_NUM
+        //#pragma HLS UNROLL factor=MAX_MODEL_NUM
         uint32_t tmp;
         label.read(tmp);
         lab[i] = *(float *)(&tmp);
     }
     update:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         #pragma HLS PIPELINE II=1
-        #pragma HLS UNROLL factor=MAX_MODEL_NUM
+        //#pragma HLS UNROLL factor=MAX_MODEL_NUM
         updateinner:for(uint32_t j=0; j<DIM; j++) {
             #pragma HLS UNROLL factor=DIM
             next_means[i][j] += sample[j]*lab[i];
@@ -93,14 +94,15 @@ uint32_t cnt_in) {
     DIS local_dis[MAX_MODEL_NUM];
 
     Full:for(uint32_t i=0; i<DATA_NUM; i++) {
+        #pragma HLS PIPELINE II=3
         DATA sample[3];
         readdata:for(uint32_t j=0; j<3; j++) {
             ap_uint<32> tmp;
             mm2s.read(tmp);
             sample[j] = *(float *)(&tmp);
         }
-        CalDis(sample, dis, k_means);
-        GetLabel(dis, label);
+        CalDis(sample, local_dis, k_means);
+        GetLabel(local_dis, label);
         Update(label, next_means, count, sample);
     }
 
