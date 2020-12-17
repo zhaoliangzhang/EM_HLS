@@ -16,19 +16,13 @@ void CalDis(DATA sample[3], hls::stream<DIS> dis[MAX_MODEL_NUM], MEANS k_means[M
     }
 }
 
-
-/*void compare(DIS* ){
-    
-}*/
 //void GetLabel(hls::stream<DIS> &dis, hls::stream<uint32_t> &label){
-void GetLabel(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<DIS> label[MAX_MODEL_NUM]){
+void GetLabel(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<ap_uint<1> > label[MAX_MODEL_NUM]){
     DIS local_dis[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=local_dis cyclic factor=256 dim=1 partition
     update:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         dis[i].read(local_dis[i]);
     }
-
-    DIS labels[MAX_MODEL_NUM];
 
     DIS local_dis_128[128];
     DIS local_dis_64[64];
@@ -281,16 +275,16 @@ void GetLabel(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<DIS> label[MAX_MO
 
 }
 
-void Update(hls::stream<DIS> label[MAX_MODEL_NUM], MEANS next_means0[MAX_MODEL_NUM], MEANS next_means1[MAX_MODEL_NUM], MEANS next_means2[MAX_MODEL_NUM], ap_uint<8> count[MAX_MODEL_NUM], DATA sample[DIM]){
+void Update(hls::stream<ap_uint<1> > label[MAX_MODEL_NUM], MEANS next_means0[MAX_MODEL_NUM], MEANS next_means1[MAX_MODEL_NUM], MEANS next_means2[MAX_MODEL_NUM], ap_uint<8> count[MAX_MODEL_NUM], DATA sample[DIM]){
     update:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         #pragma HLS PIPELINE II=1
-        DIS lab;
+        ap_uint<1> lab;
         label[i].read(lab);
-        next_means0[i] += sample[0]*lab;
-        next_means1[i] += sample[1]*lab;
-        next_means2[i] += sample[2]*lab;
         if(lab){
             count[i]++;
+            next_means0[i] += sample[0];
+            next_means1[i] += sample[1];
+            next_means2[i] += sample[2];
         }
     }
 }
@@ -302,20 +296,20 @@ uint32_t cnt_in) {
 
     ap_uint<32> iterNum = 0;
     MEANS next_means0[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means0 block factor=256 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=next_means0 block factor=128 dim=1 partition
     MEANS next_means1[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means1 block factor=256 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=next_means1 block factor=128 dim=1 partition
     MEANS next_means2[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means2 block factor=256 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=next_means2 block factor=128 dim=1 partition
     ap_uint<8> count[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=counts cyclic factor=256 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=counts cyclic factor=128 dim=1 partition
 
     //#pragma HLS DATAFLOW
     hls::stream<DIS> dis[MAX_MODEL_NUM];
-    #pragma HLS STREAM variable=dis depth=MAX_MODEL_NUM
-    hls::stream<DIS> label[MAX_MODEL_NUM];
+    #pragma HLS STREAM variable=dis depth=128
+    hls::stream<ap_uint<1> > label[MAX_MODEL_NUM];
     //hls::stream<uint32_t> label;
-    #pragma HLS STREAM variable=label depth=MAX_MODEL_NUM
+    #pragma HLS STREAM variable=label depth=128
 
 
     resetnextmeans:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
