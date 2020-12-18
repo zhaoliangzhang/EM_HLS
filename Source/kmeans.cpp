@@ -2,7 +2,7 @@
 #include "hls_math.h"
 
 void GetData(hls::stream<ap_uint<32> > &mm2s, hls::stream<DIS> &data, hls::stream<DIS> &data2) {
-#pragma HLS dataflow
+//#pragma HLS dataflow
     for(uint32_t i=0; i<DATA_NUM; i++) {
         //#pragma HLS PIPELINE
         ap_uint<32> tmp;
@@ -38,7 +38,7 @@ void CalDis(hls::stream<DIS> &data, hls::stream<DIS> dis[MAX_MODEL_NUM], MEANS k
 }
 
 void GetLabel(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<ap_uint<1> > label[MAX_MODEL_NUM]){
-#pragma HLS dataflow
+////#pragma HLS dataflow
     DIS local_dis[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=local_dis cyclic factor=16 dim=1 partition
 
@@ -152,7 +152,7 @@ void GetLabel(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<ap_uint<1> > labe
 }
 
 void Update(hls::stream<ap_uint<1> > label[MAX_MODEL_NUM], MEANS next_means0[MAX_MODEL_NUM], MEANS next_means1[MAX_MODEL_NUM], MEANS next_means2[MAX_MODEL_NUM], ap_uint<8> count[MAX_MODEL_NUM], hls::stream<DIS> &data2){
-#pragma HLS dataflow
+//#pragma HLS dataflow
     for(uint32_t i=0; i<DATA_NUM; i++) {
     //#pragma HLS PIPELINE
         DIS sample[3];
@@ -178,15 +178,15 @@ void  KMeans(hls::stream<ap_uint<32> > &mm2s,
 MEANS k_means[MAX_MODEL_NUM][DIM],
 uint32_t cnt_in) {
 
-    ap_uint<32> iterNum = 0;
     MEANS next_means0[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=next_means0 block factor=16 dim=1 partition
     MEANS next_means1[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=next_means1 block factor=16 dim=1 partition
     MEANS next_means2[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=next_means2 block factor=16 dim=1 partition
+
     ap_uint<8> count[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=counts cyclic factor=16 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=count cyclic factor=16 dim=1 partition
 
     //#pragma HLS DATAFLOW
 
@@ -219,10 +219,13 @@ uint32_t cnt_in) {
     hls::stream<ap_uint<1> > label[MAX_MODEL_NUM];
     #pragma HLS STREAM variable=label depth=128
 
+    {
+    #pragma HLS dataflow
     GetData(mm2s, data, data2);
     CalDis(data, dis, k_means);
     GetLabel(dis, label);
     Update(label, next_means0, next_means1, next_means2, count, data2);
+    }
 
     Update_means:for(uint32_t i=0; i<MAX_MODEL_NUM; i++){
         #pragma HLS PIPELINE II=1
