@@ -23,7 +23,7 @@
         #pragma HLS INTERFACE axis register both port=mm2s_means_cmd
 
         MEANS k_means[MAX_MODEL_NUM][DIM];
-        #pragma HLS ARRAY_PARTITION variable=k_means block factor=16 dim=1 partition
+        #pragma HLS ARRAY_PARTITION variable=k_means block factor=16 dim=1
 
         DatamoverCmd<ADDR_W, BTT_W> cmd_in(addr_in, ap_uint<BTT_W>(cnt_in * 12));
         DatamoverCmd<ADDR_W, BTT_W> cmd_means_in(addr_means_in, ap_uint<BTT_W>(MAX_MODEL_NUM * 12));
