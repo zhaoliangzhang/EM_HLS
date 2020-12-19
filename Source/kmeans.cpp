@@ -35,7 +35,7 @@ void CalDis(hls::stream<DIS> &data, hls::stream<DIS> dis[MAX_MODEL_NUM], MEANS k
     }
 }
 
-void GetLabel_128(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<DIS> local_dis_128[128], hls::stream<LABEL> label_128[128]) {
+void GetLabel_128(hls::stream<DIS> dis[MAX_MODEL_NUM], hls::stream<DIS> local_dis_128[128], hls::stream<uint32_t> label_128[128]) {
     for(uint32_t n=0; n<DATA_NUM; n++) {
         for(uint32_t i=0; i<128; i++){
             DIS tmp1, tmp2;
