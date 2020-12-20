@@ -17,14 +17,8 @@
     * @param[in]    cnt_in            number of input points
     * @param[out]   cnt_out           number of output means
     */
-    void top(hls::stream<ap_uint<32> > &mm2s, hls::stream<ap_uint<CMD_W> > &mm2s_cmd,
-    hls::stream<MEANS> &mm2s_means,
-    hls::stream<ap_uint<CMD_W> > &mm2s_means_cmd,
-    ap_uint<ADDR_W> addr_in,
-    ap_uint<ADDR_W> addr_means_in,
-    ap_uint<32> pram[MAX_MODEL_NUM*DIM],
-    uint32_t cnt_in,
-    uint32_t &cnt_out
+    void top(DATA _data[DATA_NUM*3],
+    MEANS _k_means[MAX_MODEL_NUM*3]
     );
 
 
