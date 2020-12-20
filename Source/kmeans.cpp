@@ -244,7 +244,7 @@ void KMeansCore(hls::stream<ap_uint<32> > &mm2s, MEANS k_means[MAX_MODEL_NUM][DI
     hls::stream<DIS> local_dis_4[4];
     #pragma HLS STREAM variable=local_dis_4 depth=2
     hls::stream<DIS> local_dis_2[2];
-    #pragma HLS STREAM variable=local_dis_2 depth=2
+    #pragma HLS STREAM variable=local_dis_2 depth=64
     hls::stream<uint32_t> label_128[128];
     #pragma HLS STREAM variable=label_128 depth=2
     hls::stream<uint32_t> label_64[64];
@@ -258,7 +258,7 @@ void KMeansCore(hls::stream<ap_uint<32> > &mm2s, MEANS k_means[MAX_MODEL_NUM][DI
     hls::stream<uint32_t> label_4[4];
     #pragma HLS STREAM variable=label_4 depth=2
     hls::stream<uint32_t> label_2[2];
-    #pragma HLS STREAM variable=label_2 depth=2
+    #pragma HLS STREAM variable=label_2 depth=64
 
     GetData(mm2s, data, data2);
     CalDis(data, dis, k_means);
@@ -279,14 +279,14 @@ MEANS k_means[MAX_MODEL_NUM][DIM],
 uint32_t cnt_in) {
 
     MEANS next_means0[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means0 block factor=16 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=next_means0 block factor=16 dim=1
     MEANS next_means1[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means1 block factor=16 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=next_means1 block factor=16 dim=1
     MEANS next_means2[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means2 block factor=16 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=next_means2 block factor=16 dim=1
 
     ap_uint<8> count[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=count cyclic factor=16 dim=1 partition
+    #pragma HLS ARRAY_PARTITION variable=count cyclic factor=16 dim=1
 
     //#pragma HLS DATAFLOW
 
@@ -296,37 +296,6 @@ uint32_t cnt_in) {
         next_means2[i] = 0;
         count[i] = 0;
     }
-
-    /*Full:for(uint32_t i=0; i<DATA_NUM; i++) {
-        #pragma HLS PIPELINE II=3
-        DATA sample[3];
-        readdata:for(uint32_t j=0; j<3; j++) {
-            ap_uint<32> tmp;
-            mm2s.read(tmp);
-            sample[j] = *(float *)(&tmp);
-        }
-        CalDis(sample, dis, k_means);
-        GetLabel(dis, label);
-        Update(label, next_means0, next_means1, next_means2, count, sample);
-    }*/
-/*
-    hls::stream<DIS> data;
-    #pragma HLS STREAM variable=data depth=768
-    hls::stream<DIS> data2;
-    #pragma HLS STREAM variable=data2 depth=768
-    hls::stream<DIS> dis[MAX_MODEL_NUM];
-    #pragma HLS STREAM variable=dis depth=128
-    hls::stream<ap_uint<1> > label[MAX_MODEL_NUM];
-    #pragma HLS STREAM variable=label depth=128
-
-    {
-    #pragma HLS dataflow
-    GetData(mm2s, data, data2);
-    CalDis(data, dis, k_means);
-    GetLabel(dis, label);
-    Update(label, next_means0, next_means1, next_means2, count, data2);
-    }
-*/
 
     KMeansCore(mm2s, k_means, next_means0, next_means1, next_means2, count);
 

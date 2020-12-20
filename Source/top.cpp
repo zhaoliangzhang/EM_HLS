@@ -9,14 +9,13 @@
     ap_uint<ADDR_W> addr_means_in,
     ap_uint<32> pram[MAX_MODEL_NUM*DIM],
     uint32_t cnt_in,
-    uint32_t &cnt_out
     ) {
         #pragma HLS INTERFACE s_axilite register port=return bundle=ctrl
         #pragma HLS INTERFACE s_axilite register port=addr_in bundle=ctrl
+        #pragma HLS INTERFACE s_axilite register port=addr_means_in bundle=ctrl
         #pragma HLS INTERFACE s_axilite register port=cnt_in bundle=ctrl
 
         #pragma HLS INTERFACE bram port=pram depth=32768
-        #pragma HLS INTERFACE ap_none port=cnt_out
         #pragma HLS INTERFACE axis register both port=mm2s
         #pragma HLS INTERFACE axis register both port=mm2s_cmd
         #pragma HLS INTERFACE axis register both port=mm2s_means
