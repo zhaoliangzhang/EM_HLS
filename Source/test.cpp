@@ -27,7 +27,7 @@ DATA string_to_num(std::string str) {
     return sum;
 }
 
-void FileToData(std::vector<DATA> &data) {
+void FileToData(DATA *data) {
     std::fstream fp;
 	fp.open("/home/zzl/Kmeans_HLS/PointCloud6.csv");
 
@@ -37,7 +37,7 @@ void FileToData(std::vector<DATA> &data) {
     uint32_t index = 0;
     for(uint32_t i=0; i<180000; i++) {
         fp>>tmp;
-        if(i%18 == 0) {
+        if(i%90 == 0) {
             uint32_t k = 0;
             for(uint32_t j=0; j<tmp.length(); j++) {
                 if(tmp[j] == ',') {
@@ -45,9 +45,9 @@ void FileToData(std::vector<DATA> &data) {
                     k +=1;
                 }
             }
-            data.push_back(string_to_num(tmp.substr(split_index[0]+1,(split_index[1]-split_index[0]-1))));
-            data.push_back(string_to_num(tmp.substr(split_index[1]+1,(split_index[2]-split_index[1]-1))));
-			data.push_back(string_to_num(tmp.substr(split_index[2]+1,(split_index[3]-split_index[2]-1))));
+            data[index*3] = string_to_num(tmp.substr(split_index[0]+1,(split_index[1]-split_index[0]-1)));
+            data[index*3+1] = string_to_num(tmp.substr(split_index[1]+1,(split_index[2]-split_index[1]-1)));
+			data[index*3+2] = tring_to_num(tmp.substr(split_index[2]+1,(split_index[3]-split_index[2]-1)));
             index += 1;
         }
     }

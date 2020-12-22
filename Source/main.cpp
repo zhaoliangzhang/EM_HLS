@@ -1,42 +1,23 @@
 #include <iostream>
 #include "top.h"
 #include "test.h"
+#include <string>
 
 using namespace std;
 
 int main(){
 
-    std::vector<DATA> data;
-
-    hls::stream<ap_uint<32> > data_str;
-    hls::stream<MEANS> means_str;
-    ap_uint<32> *pram = new ap_uint<32>[MAX_MODEL_NUM*DIM];
-    uint32_t cnt_out;
-    hls::stream<ap_uint<CMD_W> > mm2s_cmd;
-    hls::stream<ap_uint<CMD_W> > mm2s_means_cmd;
-    ap_uint<ADDR_W> addr_in = 0;
-    ap_uint<ADDR_W> addr_means_in = DATA_NUM*DIM*4+4;
-    ap_uint<CMD_W> cmd;
-    ap_uint<CMD_W> means_cmd;
-
+    DATA data[6000];
     FileToData(data);
-    DataToStream(data, data_str);
-    DataToMstream(data, means_str);
 
-    top(data_str,
-    mm2s_cmd,
-    means_str,
-    mm2s_means_cmd,
-    addr_in,
-    addr_means_in,
-    pram,
-    DATA_NUM,
-    cnt_out);
+    MEANS means[MAX_MODEL_NUM*3];
+    for(int i=0; i<256; i++){
+        means[i*3] = 0;
+        means[i*3+1] = 0;
+        means[i*3+2] = 0;
+    }
+    top(data, means);
 
-    mm2s_cmd.read(cmd);
-    mm2s_means_cmd.read(means_cmd);
-
-    delete [] pram;
     return 0;
 
 }

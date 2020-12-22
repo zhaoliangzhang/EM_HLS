@@ -7,7 +7,7 @@
 #include "hls_stream.h"
 #include "config.h"
 
-    void FileToData(std::vector<DATA> &data);
+    void FileToData(DATA* data);
     void DataToStream(std::vector<DATA> &data, hls::stream<ap_uint<32> > &data_str);
     void DataToMstream(std::vector<DATA> &data, hls::stream<MEANS> &means_str);
 

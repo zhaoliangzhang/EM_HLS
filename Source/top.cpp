@@ -9,11 +9,12 @@ MEANS _k_means[MAX_MODEL_NUM*3]
 #pragma HLS INTERFACE m_axi depth=256*3 port=_k_means offset=slave bundle=in_means
 
     hls::stream<ap_uint<32> > mm2s;
-    #pragma HLS STREAM variable=mm2s depth=16
+    #pragma HLS STREAM variable=mm2s depth=6000
     MEANS mean_buffer[MAX_MODEL_NUM][DIM];
     #pragma HLS ARRAY_PARTITION variable=mean_buffer block factor=16 dim=1
 
     for(int i=0; i<DATA_NUM; i++) {
+        #pragma HLS PIPELINE
         for(int j=0; j<3; j++) {
             float tmp;
             tmp = _data[i*3+j];

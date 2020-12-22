@@ -244,7 +244,7 @@ void KMeansCore(hls::stream<ap_uint<32> > &mm2s, MEANS k_means[MAX_MODEL_NUM][DI
     hls::stream<DIS> local_dis_4[4];
     #pragma HLS STREAM variable=local_dis_4 depth=2
     hls::stream<DIS> local_dis_2[2];
-    #pragma HLS STREAM variable=local_dis_2 depth=64
+    #pragma HLS STREAM variable=local_dis_2 depth=128
     hls::stream<uint32_t> label_128[128];
     #pragma HLS STREAM variable=label_128 depth=2
     hls::stream<uint32_t> label_64[64];
@@ -258,7 +258,7 @@ void KMeansCore(hls::stream<ap_uint<32> > &mm2s, MEANS k_means[MAX_MODEL_NUM][DI
     hls::stream<uint32_t> label_4[4];
     #pragma HLS STREAM variable=label_4 depth=2
     hls::stream<uint32_t> label_2[2];
-    #pragma HLS STREAM variable=label_2 depth=64
+    #pragma HLS STREAM variable=label_2 depth=128
 
     GetData(mm2s, data, data2);
     CalDis(data, dis, k_means);
