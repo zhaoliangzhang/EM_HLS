@@ -10,13 +10,23 @@ int main(){
     DATA data[6000];
     FileToData(data);
 
+    PRIOR priors[MAX_MODEL_NUM];
     MEANS means[MAX_MODEL_NUM*3];
+    VARS vars[MAX_MODEL_NUM*3];
+    ap_uint<1> func=0;
+
     for(int i=0; i<256; i++){
+        priors[i] = 0;
+
         means[i*3] = 0;
         means[i*3+1] = 0;
         means[i*3+2] = 0;
+
+        vars[i*3] = 0;
+        vars[i*3+1] = 0;
+        vars[i*3+2] = 0;
     }
-    top(data, means);
+    top(data, priors, means, vars, func);
 
     return 0;
 
