@@ -1,10 +1,10 @@
 #include "top.h"
 
 
-void top(DATA _data[DATA_NUM*3],
-PRIOR _priors[MAX_MODEL_NUM],
-MEANS _means[MAX_MODEL_NUM*3],
-VARS  _vars[MAX_MODEL_NUM*3],
+void top(volatile DATA _data[DATA_NUM*3],
+volatile PRIOR _priors[MAX_MODEL_NUM],
+volatile MEANS _means[MAX_MODEL_NUM*3],
+volatile VARS  _vars[MAX_MODEL_NUM*3],
 ap_uint<1> func
 ) {
 #pragma HLS INTERFACE s_axilite port=return
@@ -59,17 +59,17 @@ ap_uint<1> func
 
     {
         for(int i=0; i<MAX_MODEL_NUM; i++) {
-            #pragma HLS PIPELINE
+            //#pragma HLS PIPELINE
             _priors[i] = prior_buffer[i];
         }
         for(int i=0; i<MAX_MODEL_NUM; i++) {
-            #pragma HLS PIPELINE
+            //#pragma HLS PIPELINE
             _means[i*3] = mean_buffer[i][0];
             _means[i*3+1] = mean_buffer[i][1];
             _means[i*3+2] = mean_buffer[i][2];
         }
         for(int i=0; i<MAX_MODEL_NUM; i++) {
-            #pragma HLS PIPELINE
+            //#pragma HLS PIPELINE
             _vars[i*3] = var_buffer[i][0];
             _vars[i*3+1] = var_buffer[i][1];
             _vars[i*3+2] = var_buffer[i][2];

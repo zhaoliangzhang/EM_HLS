@@ -317,20 +317,6 @@ MEANS means[MAX_MODEL_NUM][DIM],
 VARS  vars[MAX_MODEL_NUM][DIM],
 ap_uint<1> func) {
 
-    /*PRIOR next_vars0[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_vars0 block factor=16 dim=1
-    PRIOR next_vars1[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_vars1 block factor=16 dim=1
-    PRIOR next_vars2[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_vars2 block factor=16 dim=1
-    
-    MEANS next_means0[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means0 block factor=16 dim=1
-    MEANS next_means1[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means1 block factor=16 dim=1
-    MEANS next_means2[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_means2 block factor=16 dim=1*/
-
     PRIOR next_priors[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=next_priors block factor=16 dim=1
 
@@ -342,14 +328,6 @@ ap_uint<1> func) {
 
     ap_uint<9> count[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=count cyclic factor=16 dim=1
-
-
-    /*resetnextmeans:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-        next_means0[i] = 0;
-        next_means1[i] = 0;
-        next_means2[i] = 0;
-        count[i] = 0;
-    }*/
 
     reset:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         next_priors[i] = 0;
