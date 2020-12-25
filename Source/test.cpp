@@ -47,7 +47,7 @@ void FileToData(DATA *data) {
             }
             data[index*3] = string_to_num(tmp.substr(split_index[0]+1,(split_index[1]-split_index[0]-1)));
             data[index*3+1] = string_to_num(tmp.substr(split_index[1]+1,(split_index[2]-split_index[1]-1)));
-			data[index*3+2] = tring_to_num(tmp.substr(split_index[2]+1,(split_index[3]-split_index[2]-1)));
+			data[index*3+2] = string_to_num(tmp.substr(split_index[2]+1,(split_index[3]-split_index[2]-1)));
             index += 1;
         }
     }

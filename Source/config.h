@@ -17,6 +17,6 @@ const uint8_t   CMD_W   = ADDR_W + BTT_W + 17;
 const uint32_t  MAX_MODEL_NUM = 256;
 const uint32_t  DATA_NUM = 10;
 
-const PROB  genhao_er_pai_fenzhiyi = 0.56419
+const PROB  genhao_er_pai_fenzhiyi = 0.56419;
 
 #endif

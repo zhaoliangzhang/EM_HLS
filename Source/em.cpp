@@ -27,7 +27,7 @@ void CalProb(hls::stream<DATA> &data, hls::stream<PROB> prob[MAX_MODEL_NUM], PRI
             PROB tmp_prob = 1;
             probability:for (uint32_t d = 0; d < DIM; d++) {
                 tmp_prob *= genhao_er_pai_fenzhiyi * vars[i][d];
-                tmp_prob *= exp( (-0.5) * (sample[d] - means[i][d]) * (sample[d] - means[i][d]) * vars[i][d])
+                tmp_prob *= exp( (-0.5) * (sample[d] - means[i][d]) * (sample[d] - means[i][d]) * vars[i][d]);
             }
             tmp_prob *= priors[i];
             prob[i].write(tmp_prob);
@@ -210,9 +210,9 @@ void AccumProb(hls::stream<PROB> prob[MAX_MODEL_NUM], hls::stream<PROB> P[MAX_MO
     }
 }
 
-void ProcessProb(hls::stream<PROB> prob[MAX_MODEL_NUM], hls::stream<PROB> P[MAX_MODEL_NUM], ap_uint<1> func) {
+void ProcessProb(hls::stream<PROB> probs[MAX_MODEL_NUM], hls::stream<PROB> P[MAX_MODEL_NUM], ap_uint<1> func) {
     if(func){
-        AccumProb(prob, P);
+        AccumProb(probs, P);
     } else {
         hls::stream<PROB> local_dis_128[128];
         #pragma HLS STREAM variable=local_dis_128 depth=2

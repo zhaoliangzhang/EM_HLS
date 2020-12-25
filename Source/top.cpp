@@ -51,7 +51,7 @@ ap_uint<1> func
             tmp = _data[i*3+j];
             ap_uint<32> x;
             x = *(ap_uint<32> *)&tmp;
-            mm2s.write(x)
+            mm2s.write(x);
         }
     }
 
