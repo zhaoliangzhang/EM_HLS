@@ -197,13 +197,13 @@ void AccumProb(hls::stream<PROB> prob[MAX_MODEL_NUM], hls::stream<PROB> P[MAX_MO
     PROB local_prob[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=local_prob block factor=16 dim=1
 
-    for(uint32_t n=0; n<DATA_NUM; n++) {
+    Accum1:for(uint32_t n=0; n<DATA_NUM; n++) {
         PROB sum = 0;
-        for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        Accum2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
             prob[i].read(local_prob[i]);
             sum += local_prob[i];
         }
-        for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        Accum3:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
             local_prob[i] /= sum;
             P[i].write(local_prob[i]);
         }
@@ -257,11 +257,11 @@ void ProcessProb(hls::stream<PROB> prob[MAX_MODEL_NUM], hls::stream<PROB> P[MAX_
 void Update(hls::stream<PROB> P[MAX_MODEL_NUM], PRIOR next_priors[MAX_MODEL_NUM], MEANS next_means[MAX_MODEL_NUM][DIM], VARS next_vars[MAX_MODEL_NUM][DIM], ap_uint<9> count[MAX_MODEL_NUM], hls::stream<DATA> &data2, ap_uint<1> func){
     UpdateF:for(uint32_t i=0; i<DATA_NUM; i++) {
         DATA sample[3];
-        for(uint32_t i=0; i<3; i++){
+        Update1:for(uint32_t i=0; i<3; i++){
             data2.read(sample[i]);
         }
 
-        for(uint32_t i=0; i<MAX_MODEL_NUM; i++){
+        Update2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++){
         //#pragma HLS UNROLL factor=MAX_MODEL_NUM
             PROB tmp;
             P[i].read(tmp);
@@ -269,9 +269,10 @@ void Update(hls::stream<PROB> P[MAX_MODEL_NUM], PRIOR next_priors[MAX_MODEL_NUM]
                 count[i]++;
             }
             next_priors[i] += tmp;
-            for(uint32_t d=0; d<DIM; d++) {
+            Update3:for(uint32_t d=0; d<DIM; d++) {
+                #pragma HLS UNROLL factor=3
                 next_means[i][d] += tmp*sample[d];
-                next_vars[d][d] += tmp*sample[d]*sample[d];
+                next_vars[i][d] += tmp*sample[d]*sample[d];
             }
         }
 
@@ -290,6 +291,9 @@ void EMCore(hls::stream<ap_uint<32> > &mm2s,
 {
     #pragma HLS dataflow
 
+    ap_uint<1> function1 = func;
+    ap_uint<1> function2 = func;
+
     hls::stream<DATA> data;
     #pragma HLS STREAM variable=data depth=16
     hls::stream<DATA> data2;
@@ -302,8 +306,8 @@ void EMCore(hls::stream<ap_uint<32> > &mm2s,
 
     GetData(mm2s, data, data2);
     CalProb(data, probs, priors, means, vars);
-    ProcessProb(probs, P, func);
-    Update(P, next_priors, next_means, next_vars, count, data2, func);
+    ProcessProb(probs, P, function1);
+    Update(P, next_priors, next_means, next_vars, count, data2, function2);
 }
 
 

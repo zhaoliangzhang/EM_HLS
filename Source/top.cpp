@@ -17,10 +17,32 @@ ap_uint<1> func
     #pragma HLS STREAM variable=mm2s depth=6000
     PRIOR prior_buffer[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=prior_buffer block factor=16 dim=1
+
     MEANS mean_buffer[MAX_MODEL_NUM][DIM];
     #pragma HLS ARRAY_PARTITION variable=mean_buffer block factor=16 dim=1
+    #pragma HLS ARRAY_PARTITION variable=mean_buffer block factor=3 dim=2
+
     VARS var_buffer[MAX_MODEL_NUM][DIM];
     #pragma HLS ARRAY_PARTITION variable=var_buffer block factor=16 dim=1
+    #pragma HLS ARRAY_PARTITION variable=var_buffer block factor=3 dim=2
+
+
+    for(int i=0; i<MAX_MODEL_NUM; i++) {
+        #pragma HLS PIPELINE
+        prior_buffer[i] = _priors[i];
+    }
+    for(int i=0; i<MAX_MODEL_NUM; i++) {
+        #pragma HLS PIPELINE
+        mean_buffer[i][0] = _means[i*3];
+        mean_buffer[i][1] = _means[i*3+1];
+        mean_buffer[i][2] = _means[i*3+2];
+    }
+    for(int i=0; i<MAX_MODEL_NUM; i++) {
+        #pragma HLS PIPELINE
+        var_buffer[i][0] = _vars[i*3];
+        var_buffer[i][1] = _vars[i*3+1];
+        var_buffer[i][2] = _vars[i*3+2];
+    }
 
     for(int i=0; i<DATA_NUM; i++) {
         #pragma HLS PIPELINE
@@ -30,25 +52,6 @@ ap_uint<1> func
             ap_uint<32> x;
             x = *(ap_uint<32> *)&tmp;
             mm2s.write(x)
-        }
-    }
-
-    {
-        for(int i=0; i<MAX_MODEL_NUM; i++) {
-            #pragma HLS PIPELINE
-            prior_buffer[i] = _priors[i];
-        }
-        for(int i=0; i<MAX_MODEL_NUM; i++) {
-            #pragma HLS PIPELINE
-            mean_buffer[i][0] = _means[i*3];
-            mean_buffer[i][1] = _means[i*3+1];
-            mean_buffer[i][2] = _means[i*3+2];
-        }
-        for(int i=0; i<MAX_MODEL_NUM; i++) {
-            #pragma HLS PIPELINE
-            var_buffer[i][0] = _vars[i*3];
-            var_buffer[i][1] = _vars[i*3+1];
-            var_buffer[i][2] = _vars[i*3+2];
         }
     }
 
