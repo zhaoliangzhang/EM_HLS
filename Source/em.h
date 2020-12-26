@@ -4,7 +4,7 @@
 #include "config.h"
 #include "hls_stream.h"
 
-void EM(hls::stream<ap_uint<32> > &mm2s,
+void EM(DATA _data[MAX_MODEL_NUM*3],
 PRIOR priors[MAX_MODEL_NUM],
 MEANS means[MAX_MODEL_NUM][DIM],
 VARS  vars[MAX_MODEL_NUM][DIM],

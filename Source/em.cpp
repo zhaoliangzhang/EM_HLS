@@ -1,16 +1,13 @@
 #include "em.h"
 #include "hls_math.h"
 
-void GetData(hls::stream<ap_uint<32> > &mm2s, hls::stream<DATA> &data, hls::stream<DATA> &data2) {
+void GetData(DATA _data[MAX_MODEL_NUM*3], hls::stream<DATA> &data, hls::stream<DATA> &data2) {
     for(uint32_t i=0; i<DATA_NUM; i++) {
-        //#pragma HLS PIPELINE
-        ap_uint<32> tmp;
-        DATA convert;
         for(uint32_t j=0; j<3; j++){
-            mm2s.read(tmp);
-            convert = *(float *)(&tmp);
-            data.write(convert);
-            data2.write(convert);
+            DATA tmp;
+            tmp = _data[i*3+j];
+            data.write(tmp);
+            data2.write(tmp);
         }
     }
 }
@@ -215,33 +212,33 @@ void ProcessProb(hls::stream<PROB> probs[MAX_MODEL_NUM], hls::stream<PROB> P[MAX
         AccumProb(probs, P);
     } else {
         hls::stream<PROB> local_dis_128[128];
-        #pragma HLS STREAM variable=local_dis_128 depth=2
+        #pragma HLS STREAM variable=local_dis_128 depth=32
         hls::stream<PROB> local_dis_64[64];
-        #pragma HLS STREAM variable=local_dis_64 depth=2
+        #pragma HLS STREAM variable=local_dis_64 depth=32
         hls::stream<PROB> local_dis_32[32];
-        #pragma HLS STREAM variable=local_dis_32 depth=2
+        #pragma HLS STREAM variable=local_dis_32 depth=32
         hls::stream<PROB> local_dis_16[16];
-        #pragma HLS STREAM variable=local_dis_16 depth=2
+        #pragma HLS STREAM variable=local_dis_16 depth=32
         hls::stream<PROB> local_dis_8[8];
-        #pragma HLS STREAM variable=local_dis_8 depth=2
+        #pragma HLS STREAM variable=local_dis_8 depth=32
         hls::stream<PROB> local_dis_4[4];
-        #pragma HLS STREAM variable=local_dis_4 depth=2
+        #pragma HLS STREAM variable=local_dis_4 depth=32
         hls::stream<PROB> local_dis_2[2];
-        #pragma HLS STREAM variable=local_dis_2 depth=2
+        #pragma HLS STREAM variable=local_dis_2 depth=32
         hls::stream<uint32_t> label_128[128];
-        #pragma HLS STREAM variable=label_128 depth=2
+        #pragma HLS STREAM variable=label_128 depth=32
         hls::stream<uint32_t> label_64[64];
-        #pragma HLS STREAM variable=label_64 depth=2
+        #pragma HLS STREAM variable=label_64 depth=32
         hls::stream<uint32_t> label_32[32];
-        #pragma HLS STREAM variable=label_32 depth=2
+        #pragma HLS STREAM variable=label_32 depth=32
         hls::stream<uint32_t> label_16[16];
-        #pragma HLS STREAM variable=label_16 depth=2
+        #pragma HLS STREAM variable=label_16 depth=32
         hls::stream<uint32_t> label_8[8];
-        #pragma HLS STREAM variable=label_8 depth=2
+        #pragma HLS STREAM variable=label_8 depth=32
         hls::stream<uint32_t> label_4[4];
-        #pragma HLS STREAM variable=label_4 depth=2
+        #pragma HLS STREAM variable=label_4 depth=32
         hls::stream<uint32_t> label_2[2];
-        #pragma HLS STREAM variable=label_2 depth=2
+        #pragma HLS STREAM variable=label_2 depth=32
         
         GetLabel_128(probs, local_dis_128, label_128);
         GetLabel_64(local_dis_128, label_128, local_dis_64, label_64);
@@ -279,7 +276,7 @@ void Update(hls::stream<PROB> P[MAX_MODEL_NUM], PRIOR next_priors[MAX_MODEL_NUM]
     }
 }
 
-void EMCore(hls::stream<ap_uint<32> > &mm2s, 
+void EMCore(DATA _data[MAX_MODEL_NUM*3], 
     PRIOR priors[MAX_MODEL_NUM],
     MEANS means[MAX_MODEL_NUM][DIM],
     VARS vars[MAX_MODEL_NUM][DIM],
@@ -297,21 +294,21 @@ void EMCore(hls::stream<ap_uint<32> > &mm2s,
     hls::stream<DATA> data;
     #pragma HLS STREAM variable=data depth=16
     hls::stream<DATA> data2;
-    #pragma HLS STREAM variable=data2 depth=16
+    #pragma HLS STREAM variable=data2 depth=64
 
     hls::stream<PROB> probs[MAX_MODEL_NUM];
     #pragma HLS STREAM variable=probs depth=16
     hls::stream<PROB> P[MAX_MODEL_NUM];
     #pragma HLS STREAM variable=P depth=16
 
-    GetData(mm2s, data, data2);
+    GetData(_data, data, data2);
     CalProb(data, probs, priors, means, vars);
     ProcessProb(probs, P, function1);
     Update(P, next_priors, next_means, next_vars, count, data2, function2);
 }
 
 
-void  EM(hls::stream<ap_uint<32> > &mm2s,
+void  EM(DATA _data[MAX_MODEL_NUM*3],
 PRIOR priors[MAX_MODEL_NUM],
 MEANS means[MAX_MODEL_NUM][DIM],
 VARS  vars[MAX_MODEL_NUM][DIM],
@@ -336,7 +333,7 @@ ap_uint<1> func) {
         count[i] = 0;
     }
 
-    EMCore(mm2s,
+    EMCore(_data,
     priors, means, vars, 
     next_priors, next_means, next_vars,
     count, func);

@@ -19,7 +19,8 @@
     PRIOR _priors[MAX_MODEL_NUM],
     MEANS _means[MAX_MODEL_NUM*3],
     VARS  _vars[MAX_MODEL_NUM*3],
-    ap_uint<1> func
+    ap_uint<1> func,
+    int &stat
     );
 
 
