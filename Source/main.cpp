@@ -13,7 +13,7 @@ int main(){
     PRIOR priors[MAX_MODEL_NUM];
     MEANS means[MAX_MODEL_NUM*3];
     VARS vars[MAX_MODEL_NUM*3];
-    ap_uint<1> func=1;
+    ap_uint<1> func=0;
 
     int stat=0;
 
@@ -31,5 +31,4 @@ int main(){
     top(data, priors, means, vars, func, stat);
 
     return 0;
-
 }
