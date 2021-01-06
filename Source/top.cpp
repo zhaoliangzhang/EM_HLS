@@ -14,7 +14,7 @@ int &stat
 #pragma HLS INTERFACE m_axi depth=256*3 port=_means offset=slave bundle=in_means
 #pragma HLS INTERFACE m_axi depth=256*3 port=_vars offset=slave bundle=in_vars
 
-#pragma HLS INTERFACE ap_none max_widen_bitwidth=64 port=stat
+#pragma HLS INTERFACE ap_none port=stat
 
     //hls::stream<ap_uint<32> > mm2s;
     //#pragma HLS STREAM variable=mm2s depth=6000
@@ -73,23 +73,20 @@ int &stat
 
     stat = 5;
 
-    {
-        for(int i=0; i<MAX_MODEL_NUM; i++) {
-            //#pragma HLS PIPELINE
-            _priors[i] = prior_buffer[i];
-        }
-        for(int i=0; i<MAX_MODEL_NUM; i++) {
-            //#pragma HLS PIPELINE
-            _means[i*3] = mean_buffer[i][0];
-            _means[i*3+1] = mean_buffer[i][1];
-            _means[i*3+2] = mean_buffer[i][2];
-        }
-        for(int i=0; i<MAX_MODEL_NUM; i++) {
-            //#pragma HLS PIPELINE
-            _vars[i*3] = var_buffer[i][0];
-            _vars[i*3+1] = var_buffer[i][1];
-            _vars[i*3+2] = var_buffer[i][2];
-        }
+    for(int i=0; i<MAX_MODEL_NUM; i++) {
+        _priors[i] = prior_buffer[i];
     }
+    for(int i=0; i<MAX_MODEL_NUM; i++) {
+        _means[i*3] = mean_buffer[i][0];
+        _means[i*3+1] = mean_buffer[i][1];
+        _means[i*3+2] = mean_buffer[i][2];
+    }
+    for(int i=0; i<MAX_MODEL_NUM; i++) {
+        _vars[i*3] = var_buffer[i][0];
+        _vars[i*3+1] = var_buffer[i][1];
+        _vars[i*3+2] = var_buffer[i][2];
+    }
+    
+    stat = 6;
 
 }
