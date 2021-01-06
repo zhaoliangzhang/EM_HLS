@@ -23,6 +23,7 @@ void CalProb(hls::stream<DATA> &data, hls::stream<Vector<MAX_MODEL_NUM, PROB> > 
             #pragma HLS PIPELINE
             local_probs.vec[i] = 1;
             probability:for (uint32_t d = 0; d < DIM; d++) {
+                #pragma HLS UNROLL factor=3
                 local_probs.vec[i] *= genhao_er_pai_fenzhiyi * vars[i][d];
                 local_probs.vec[i] *= exp( (-0.5) * (sample[d] - means[i][d]) * (sample[d] - means[i][d]) * vars[i][d]);
             }
@@ -56,17 +57,17 @@ void GetMax(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &probs, hls::stream<Vector
     Vector<MAX_MODEL_NUM, PROB> local_P;
     #pragma HLS ARRAY_PARTITION variable=local_P block factor=16 dim=1
 
-    for(uint32_t n=0; n<DATA_NUM; n++) {
+    GetMaxF:for(uint32_t n=0; n<DATA_NUM; n++) {
         PROB max = 1.0;
         uint32_t p = 0;
         probs.read(local_probs);
-        for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        GetMax1:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
             if(max < local_probs.vec[i]) {
                 max = local_probs.vec[i];
                 p = i;
             }
         }
-        for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
+        GetMax2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
             if(i==p){
                 local_P.vec[i] = 1.0;
             } else {
@@ -96,6 +97,7 @@ void Update(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &P, PRIOR next_priors[MAX_
         Vector<MAX_MODEL_NUM, PROB> local_P;
         P.read(local_P);
         Update2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++){
+        #pragma UNROLL factor=MAX_MODEL_NUM
             if((func==0)&&(local_P.vec[i]==1)){
                 count[i]++;
             }
@@ -153,9 +155,11 @@ ap_uint<1> func) {
 
     MEANS next_means[MAX_MODEL_NUM][DIM];
     #pragma HLS ARRAY_PARTITION variable=next_means block factor=16 dim=1
+    #pragma HLS ARRAY_PARTITION variable=next_means block factor=3 dim=2
 
     VARS next_vars[MAX_MODEL_NUM][DIM];
     #pragma HLS ARRAY_PARTITION variable=next_vars block factor=16 dim=1
+    #pragma HLS ARRAY_PARTITION variable=next_vars block factor=3 dim=2
 
     ap_uint<9> count[MAX_MODEL_NUM];
     #pragma HLS ARRAY_PARTITION variable=count cyclic factor=16 dim=1

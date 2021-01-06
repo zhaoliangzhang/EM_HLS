@@ -14,7 +14,7 @@ int &stat
 #pragma HLS INTERFACE m_axi depth=256*3 port=_means offset=slave bundle=in_means
 #pragma HLS INTERFACE m_axi depth=256*3 port=_vars offset=slave bundle=in_vars
 
-#pragma HLS INTERFACE ap_none port=stat
+#pragma HLS INTERFACE ap_none max_widen_bitwidth=64 port=stat
 
     //hls::stream<ap_uint<32> > mm2s;
     //#pragma HLS STREAM variable=mm2s depth=6000
