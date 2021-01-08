@@ -64,11 +64,13 @@ int &stat
         _priors[i] = prior_buffer[i];
     }
     for(int i=0; i<MAX_MODEL_NUM; i++) {
+    #pragma HLS PIPELINE off
         _means[i*3] = mean_buffer[i][0];
         _means[i*3+1] = mean_buffer[i][1];
         _means[i*3+2] = mean_buffer[i][2];
     }
     for(int i=0; i<MAX_MODEL_NUM; i++) {
+    #pragma HLS PIPELINE off
         _vars[i*3] = var_buffer[i][0];
         _vars[i*3+1] = var_buffer[i][1];
         _vars[i*3+2] = var_buffer[i][2];

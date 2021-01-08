@@ -21,10 +21,9 @@ void CalProb(hls::stream<DATA> &data, hls::stream<Vector<MAX_MODEL_NUM, PROB> > 
         Vector<MAX_MODEL_NUM, PROB> local_probs;
         CalPROB:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
             //#pragma HLS PIPELINE off
-            #pragma UNROLL factor=MAX_MODEL_NUM
             local_probs.vec[i] = 1;
             probability:for (uint32_t d = 0; d < DIM; d++) {
-                #pragma HLS UNROLL factor=3
+                //#pragma HLS UNROLL factor=3
                 local_probs.vec[i] *= genhao_er_pai_fenzhiyi * vars[i][d];
                 local_probs.vec[i] *= (PROB)(-0.5) * (sample[d] - means[i][d]) * (sample[d] - means[i][d]) * vars[i][d];
             }
@@ -40,7 +39,6 @@ void AccumProb(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &probs, hls::stream<Vec
 
     Accum1:for(uint32_t n=0; n<DATA_NUM; n++) {
         PROB sum = 0;
-        #pragma HLS dependence variable=sum inter false
 
         probs.read(local_probs);
         Accum2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
@@ -103,7 +101,7 @@ void Update(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &P, PRIOR next_priors[MAX_
         Vector<MAX_MODEL_NUM, PROB> local_P;
         P.read(local_P);
         Update2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++){
-        #pragma UNROLL factor=MAX_MODEL_NUM
+        //#pragma UNROLL factor=MAX_MODEL_NUM
             if((func==0)&&(local_P.vec[i]==1)){
                 count[i]++;
             }
