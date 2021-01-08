@@ -56,22 +56,9 @@ int &stat
 
     stat = 3;
 
-    /*for(int i=0; i<DATA_NUM; i++) {
-        #pragma HLS PIPELINE
-        for(int j=0; j<3; j++) {
-            float tmp;
-            tmp = _data[i*3+j];
-            ap_uint<32> x;
-            x = *(ap_uint<32> *)&tmp;
-            mm2s.write(x);
-        }
-    }*/
-
-    stat = 4;
-
     EM(_data, prior_buffer, mean_buffer, var_buffer, func);
 
-    stat = 5;
+    stat = 4;
 
     for(int i=0; i<MAX_MODEL_NUM; i++) {
         _priors[i] = prior_buffer[i];
@@ -87,6 +74,6 @@ int &stat
         _vars[i*3+2] = var_buffer[i][2];
     }
     
-    stat = 6;
+    stat = 233;
 
 }

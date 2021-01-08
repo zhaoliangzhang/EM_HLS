@@ -16,7 +16,7 @@ DATA string_to_num(std::string str) {
     ++i;
     DATA t=1,d=1;
     while(i<len){
-        d*=0.1;
+        d*=(DATA)0.1;
         t=str[i]-'0';
         sum+=t*d;
         ++i;
