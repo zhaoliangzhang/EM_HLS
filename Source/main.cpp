@@ -17,7 +17,7 @@ int main(){
 
     int stat=0;
 
-    for(int i=0; i<256; i++){
+    for(int i=0; i<MAX_MODEL_NUM; i++){
         priors[i] = 0.1;
 
         means[i*3] = 0;
