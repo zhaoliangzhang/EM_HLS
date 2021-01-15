@@ -5,3 +5,4 @@ vivado_hls.log
 #vitis files
 Kmeans_HLS_2020/
 vitis_hls.log
+history report/
