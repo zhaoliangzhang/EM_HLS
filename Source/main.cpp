@@ -28,7 +28,7 @@ int main(){
         vars[i*3+1] = 0;
         vars[i*3+2] = 0;
     }
-    top(data, priors, means, vars, func, stat);
+    top(data, priors, means, vars, func);
 
     return 0;
 }
