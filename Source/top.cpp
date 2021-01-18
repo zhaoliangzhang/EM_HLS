@@ -1,7 +1,7 @@
 #include "top.h"
 
 
-void top(DATA _data[DATA_NUM*3],
+void top(float _data[DATA_NUM],
 PRIOR _priors[MAX_MODEL_NUM],
 MEANS _means[MAX_MODEL_NUM*3],
 VARS  _vars[MAX_MODEL_NUM*3],
@@ -9,7 +9,7 @@ ap_uint<1> func
 ) {
 #pragma HLS INTERFACE s_axilite port=return bundle=hls_ctrl
 #pragma HLS INTERFACE s_axilite port=func bundle=func_ctrl
-#pragma HLS INTERFACE m_axi depth=DATA_NUM*3 port=_data offset=slave bundle=in_data
+#pragma HLS INTERFACE m_axi depth=DATA_NUM+1 port=_data offset=slave bundle=in_data
 #pragma HLS INTERFACE m_axi depth=MAX_MODEL_NUM port=_priors offset=slave bundle=in_priors
 #pragma HLS INTERFACE m_axi depth=MAX_MODEL_NUM*3 port=_means offset=slave bundle=in_means
 #pragma HLS INTERFACE m_axi depth=MAX_MODEL_NUM*3 port=_vars offset=slave bundle=in_vars

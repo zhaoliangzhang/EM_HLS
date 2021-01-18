@@ -7,15 +7,14 @@ using namespace std;
 
 int main(){
 
-    DATA data[6000];
-    FileToData(data);
+    float data[90000];
+    //FileToData(data);
 
     PRIOR priors[MAX_MODEL_NUM];
     MEANS means[MAX_MODEL_NUM*3];
     VARS vars[MAX_MODEL_NUM*3];
-    ap_uint<1> func=0;
+    ap_uint<1> func=1;
 
-    int stat=0;
 
     for(int i=0; i<MAX_MODEL_NUM; i++){
         priors[i] = 0.1;

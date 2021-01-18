@@ -1,12 +1,16 @@
 #include "em.h"
 #include "hls_math.h"
 
-void GetData(DATA _data[DATA_NUM*3], hls::stream<Vector<DIM, DATA> > &data, hls::stream<Vector<DIM, DATA> > &data2) {
+using namespace std;
+
+void GetData(float _data[DATA_NUM], hls::stream<Vector<DIM, DATA> > &data, hls::stream<Vector<DIM, DATA> > &data2) {
     for(uint32_t i=0; i<DATA_NUM; i++) {
         Vector<DIM, DATA> tmp;
-        for(uint32_t j=0; j<3; j++){
-            tmp.vec[j] = _data[i*3+j];
-        }
+        float buffer = _data[i];
+        char* ch = (char*)&buffer;
+        tmp.vec[0] = *ch;
+        tmp.vec[1] = *(ch+1);
+        tmp.vec[2] = *(ch+2);
         data.write(tmp);
         data2.write(tmp);
     }
@@ -20,32 +24,12 @@ void CalProb(hls::stream<Vector<DIM, DATA> > &data, hls::stream<Vector<MAX_MODEL
     #pragma HLS DEPENDENCE variable=sample inter false
         Vector<MAX_MODEL_NUM, PROB> local_probs;
         CalPROB:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-        #pragma HLS UNROLL factor=128
-        local_probs.vec[i] = 1;
-            probability:for (uint32_t d = 0; d < DIM; d++) {
-                sample.vec[d] = (sample.vec[d] - means[i][d]) * vars[i][d];
-                PROB tmp;
-                if(sample.vec[d] >=0 && sample.vec[d] < datath1){
-                    tmp = (PROB)-0.078125;
-                    tmp *= sample.vec[d];
-                    tmp += (PROB)0.40625;
-                    local_probs.vec[i] *= tmp;
-                } else if(sample.vec[d] >=datath1 && sample.vec[d] < datath2) {
-                    tmp = (PROB)-0.21875;
-                    tmp *= sample.vec[d];
-                    tmp += (PROB)0.4609375;
-                    local_probs.vec[i] *= tmp;
-                } else if(sample.vec[d] >=datath2 && sample.vec[d] < datath3) {
-                    tmp = (PROB)-0.0546875;
-                    tmp *= sample.vec[d];
-                    tmp += (PROB)0.1640625;
-                    local_probs.vec[i] *= tmp;
-                } else if(sample.vec[d] >=datath3 && sample.vec[d] < datath4) {
-                    local_probs.vec[i] *= (PROB)0.00390625;
-                } else if(sample.vec[d] >=datath4) {
-                    local_probs.vec[i] *= (PROB)0.00001526;
-                }
-            }
+        #pragma HLS UNROLL factor=MAX_MODEL_NUM
+        	local_probs.vec[i] = 1;
+        	for(uint32_t d=0; d<DIM; d++){
+				sample.vec[d] = (sample.vec[d] - means[i][d]) * vars[i][d] * (DATA)(-0.5);
+				local_probs.vec[i] *= genhao_er_pai_fenzhiyi*(PROB)exp((sample.vec[d]).to_float());
+			}
             local_probs.vec[i] *= priors[i];
             local_probs.vec[i] *= vars[i][0];
             local_probs.vec[i] *= vars[i][1];
@@ -67,14 +51,14 @@ void AccumProb(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &probs, hls::stream<Vec
 
         probs.read(local_probs);
         Accum2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-        #pragma HLS UNROLL factor=128
+        #pragma HLS UNROLL factor=MAX_MODEL_NUM
             sum += local_probs.vec[i];
         }
 
-        ap_ufixed<16, 16, AP_RND, AP_SAT> inv_sum = 1/sum;
+        float inv_sum = 1/(float)sum;
         Accum3:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-        #pragma HLS UNROLL factor=128
-            local_resp.vec[i] = local_probs.vec[i]*inv_sum;
+        #pragma HLS UNROLL factor=MAX_MODEL_NUM
+            local_resp.vec[i] = local_probs.vec[i]*(PROB)inv_sum;
         }
         resp.write(local_resp);
     }
@@ -92,14 +76,14 @@ void GetMax(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &probs, hls::stream<Vector
         uint32_t p = 0;
         probs.read(local_probs);
         GetMax1:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-		#pragma HLS UNROLL factor=128
+		#pragma HLS UNROLL factor=MAX_MODEL_NUM
             if(max < local_probs.vec[i]) {
                 max = local_probs.vec[i];
                 p = i;
             }
         }
         GetMax2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
-		#pragma HLS UNROLL factor=128
+		#pragma HLS UNROLL factor=MAX_MODEL_NUM
             if(i==p){
                 local_resp.vec[i] = 1.0;
             } else {
@@ -121,7 +105,7 @@ void ProcessProb(hls::stream<Vector<MAX_MODEL_NUM, PROB> > &probs, hls::stream<V
 
 void Update(hls::stream<Vector<MAX_MODEL_NUM, RESP> > &resp, PRIOR next_priors[MAX_MODEL_NUM], MEANS next_means[MAX_MODEL_NUM][DIM], VARS next_vars[MAX_MODEL_NUM][DIM], ap_uint<9> count[MAX_MODEL_NUM], hls::stream<Vector<DIM, DATA> > &data2, ap_uint<1> func){
 //void Update(hls::stream<Vector<MAX_MODEL_NUM, RESP> > &resp, PRIOR next_priors[MAX_MODEL_NUM], MEANS next_means[MAX_MODEL_NUM][DIM], VARS next_vars[MAX_MODEL_NUM][DIM], ap_uint<9> count[MAX_MODEL_NUM], hls::stream<Vector<DIM, DATA> > &data2){
-    UpdateF:for(uint32_t i=0; i<DATA_NUM; i++) {
+    UpdateF:for(uint32_t n=0; n<DATA_NUM; n++) {
         Vector<DIM, DATA> sample;
         data2.read(sample);
 
@@ -131,7 +115,7 @@ void Update(hls::stream<Vector<MAX_MODEL_NUM, RESP> > &resp, PRIOR next_priors[M
         #pragma HLS DEPENDENCE variable=count intra false
         
         Update2:for(uint32_t i=0; i<MAX_MODEL_NUM; i++){
-        #pragma HLS UNROLL factor=128
+        #pragma HLS UNROLL factor=MAX_MODEL_NUM
             count[i] += local_resp.vec[i];
             next_priors[i] += local_resp.vec[i];
             Update3:for(uint32_t d=0; d<DIM; d++) {
@@ -146,7 +130,7 @@ void Update(hls::stream<Vector<MAX_MODEL_NUM, RESP> > &resp, PRIOR next_priors[M
     }
 }
 
-void EMCore(DATA _data[DATA_NUM*3], 
+void EMCore(float _data[DATA_NUM],
     PRIOR priors[MAX_MODEL_NUM],
     MEANS means[MAX_MODEL_NUM][DIM],
     VARS vars[MAX_MODEL_NUM][DIM],
@@ -161,14 +145,14 @@ void EMCore(DATA _data[DATA_NUM*3],
     ap_uint<1> function1 = func;
     ap_uint<1> function2 = func;
 
-    hls::stream<Vector<DIM, DATA> > data;
+    hls::stream<Vector<DIM, DATA> > data("data");
     #pragma HLS STREAM variable=data depth=4
-    hls::stream<Vector<DIM, DATA> > data2;
-    #pragma HLS STREAM variable=data2 depth=8
+    hls::stream<Vector<DIM, DATA> > data2("data2");
+    #pragma HLS STREAM variable=data2 depth=512
 
-    hls::stream<Vector<MAX_MODEL_NUM, PROB> > probs;
+    hls::stream<Vector<MAX_MODEL_NUM, PROB> > probs("probs");
     #pragma HLS STREAM variable=probs depth=4
-    hls::stream<Vector<MAX_MODEL_NUM, RESP> > resp;
+    hls::stream<Vector<MAX_MODEL_NUM, RESP> > resp("resp");
     #pragma HLS STREAM variable=resp depth=4
 
     GetData(_data, data, data2);
@@ -179,25 +163,25 @@ void EMCore(DATA _data[DATA_NUM*3],
 }
 
 
-void  EM(DATA _data[DATA_NUM*3],
+void  EM(float _data[DATA_NUM],
 PRIOR priors[MAX_MODEL_NUM],
 MEANS means[MAX_MODEL_NUM][DIM],
 VARS  vars[MAX_MODEL_NUM][DIM],
 ap_uint<1> func) {
 
     PRIOR next_priors[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=next_priors block factor=8 dim=1
+    #pragma HLS ARRAY_PARTITION variable=next_priors block factor=MAX_MODEL_NUM dim=1
 
     MEANS next_means[MAX_MODEL_NUM][DIM];
-    #pragma HLS ARRAY_PARTITION variable=next_means block factor=8 dim=1
+    #pragma HLS ARRAY_PARTITION variable=next_means block factor=MAX_MODEL_NUM dim=1
     #pragma HLS ARRAY_PARTITION variable=next_means block factor=3 dim=2
 
     VARS next_vars[MAX_MODEL_NUM][DIM];
-    #pragma HLS ARRAY_PARTITION variable=next_vars block factor=8 dim=1
+    #pragma HLS ARRAY_PARTITION variable=next_vars block factor=MAX_MODEL_NUM dim=1
     #pragma HLS ARRAY_PARTITION variable=next_vars block factor=3 dim=2
 
     ap_uint<9> count[MAX_MODEL_NUM];
-    #pragma HLS ARRAY_PARTITION variable=count cyclic factor=128 dim=1
+    #pragma HLS ARRAY_PARTITION variable=count cyclic factor=MAX_MODEL_NUM dim=1
 
     reset:for(uint32_t i=0; i<MAX_MODEL_NUM; i++) {
         next_priors[i] = 0;

@@ -2,9 +2,9 @@
 #include <string>
 
 
-DATA string_to_num(std::string str) {
+float string_to_num(std::string str) {
 	int i=0,len=str.length();
-    DATA sum=0;
+    float sum=0;
 	if(str[0] == '-'){
 		i++;
 	}
@@ -14,9 +14,9 @@ DATA string_to_num(std::string str) {
         ++i;
     }
     ++i;
-    DATA t=1,d=1;
+    float t=1,d=1;
     while(i<len){
-        d*=(DATA)0.1;
+        d*=0.1;
         t=str[i]-'0';
         sum+=t*d;
         ++i;
@@ -27,7 +27,7 @@ DATA string_to_num(std::string str) {
     return sum;
 }
 
-void FileToData(DATA *data) {
+void FileToData(float *data) {
     std::fstream fp;
 	fp.open("/home/zzl/Kmeans_HLS/PointCloud6.csv");
 
@@ -37,7 +37,7 @@ void FileToData(DATA *data) {
     uint32_t index = 0;
     for(uint32_t i=0; i<180000; i++) {
         fp>>tmp;
-        if(i%90 == 0) {
+        if(i%180 == 0) {
             uint32_t k = 0;
             for(uint32_t j=0; j<tmp.length(); j++) {
                 if(tmp[j] == ',') {

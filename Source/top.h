@@ -15,7 +15,7 @@
     * @param[in]    _vars           variances of GMM
     * @param[in]    func            0 for kmeans, 1 for GMM
     */
-    void top(DATA _data[DATA_NUM*3],
+    void top(float _data[DATA_NUM],
     PRIOR _priors[MAX_MODEL_NUM],
     MEANS _means[MAX_MODEL_NUM*3],
     VARS  _vars[MAX_MODEL_NUM*3],
